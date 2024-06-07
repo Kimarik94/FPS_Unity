@@ -50,6 +50,22 @@ MonoBehaviour:
   - PlayEffects
   - RPCShootEffectForOthers
   - RPCCreateBulletHole
+  - DamagePlayer
+  - DeactivatePlayer
+  - DestroyAfterDelay
+  - DestroyDelay
+  - RequestDestroy
+  - RequestDestroyPlayer
+  - HidePlayerForOthers
+  - RPCNotifyDeath
+  - RPCRemovePlayer
+  - SpawnDeathObject
+  - RPCSpawnDeathObject
+  - RemovePlayerNick
+  - UpdatePlayerNicks
+  - CheckIfKilled
+  - RemovePlayerData
+  - UpdatePlayerData
   DisableAutoOpenWizard: 1
-  ShowSettings: 0
+  ShowSettings: 1
   DevRegionSetOnce: 1

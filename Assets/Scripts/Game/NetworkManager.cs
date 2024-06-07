@@ -1,23 +1,19 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
-    public static NetworkManager Instance;
+    private string map;
+    private string playerNickName;
+    public List<RoomInfo> existsRooms = new List<RoomInfo>();
+    private string pendingRoomName;
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
@@ -27,27 +23,68 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Connected to Photon Master Server");
         PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedLobby()
     {
-        Debug.Log("Joined Lobby");
         LoadingProgress.isLoading = false;
         LoadingProgress.minimizeWindow = true;
+        if (!string.IsNullOrEmpty(pendingRoomName))
+        {
+            JoinSpecificRoom(pendingRoomName);
+            pendingRoomName = null;
+        }
     }
 
-    public void CreateRoom(string roomName, int playerNumbers)
+    public void CreateRoom(string roomName, int playerNumbers, string mapName, string nickName)
     {
-        RoomOptions roomOptions = new RoomOptions();
-        roomOptions.MaxPlayers = playerNumbers;
+        RoomOptions roomOptions = new RoomOptions
+        {
+            MaxPlayers = (byte)playerNumbers,
+            CustomRoomProperties = new ExitGames.Client.Photon.Hashtable() { { "map", mapName } },
+            CustomRoomPropertiesForLobby = new string[] { "map" }
+        };
+
+        Debug.Log($"Creating room: {roomName} with max players: {playerNumbers}");
+
         PhotonNetwork.CreateRoom(roomName, roomOptions);
+
+        map = mapName;
+        playerNickName = nickName;
     }
 
-    public override void OnCreatedRoom()
+    public void JoinSpecificRoom(string roomName)
     {
-        Debug.Log("Комната успешно создана");
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            PhotonNetwork.JoinRoom(roomName);
+        }
+        else
+        {
+            Debug.Log("Not ready to join room, pending connection...");
+            pendingRoomName = roomName;
+        }
+    }
+
+    public override void OnJoinedRoom()
+    {
+        Room currentRoom = PhotonNetwork.CurrentRoom;
+        if (currentRoom != null)
+        {
+            map = currentRoom.CustomProperties["map"] as string;
+            if (currentRoom.PlayerCount <= currentRoom.MaxPlayers)
+            {
+                PhotonNetwork.LoadLevel(map);
+                StartCoroutine(DelayAfterLevelLoading());
+            }
+            else
+            {
+                Debug.LogWarning("Комната заполнена");
+                PhotonNetwork.LeaveRoom();
+                ShowRoomFullMessage();
+            }
+        }
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
@@ -55,39 +92,59 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         Debug.LogError("Не удалось создать комнату: " + message);
     }
 
-    public override void OnJoinedRoom()
+    public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        base.OnJoinedRoom();
-        Debug.Log("Успешно подключились к комнате");
-
-        PhotonNetwork.LoadLevel("Level_Base");
-
-        StartCoroutine(LevelWaitingLoading());
-        Debug.Log("Level Loaded");
+        Debug.LogError("Не удалось подключиться к комнате: " + message);
+        if (message.Contains("full"))
+        {
+            ShowRoomFullMessage();
+        }
     }
 
-    public override void OnJoinRandomFailed(short returnCode, string message)
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        Debug.LogError("Не удалось подключиться к случайной комнате: " + message);
+        existsRooms.Clear();
+        foreach (RoomInfo roomInfo in roomList)
+        {
+            existsRooms.Add(roomInfo);
+            if (roomInfo.CustomProperties.TryGetValue("map", out object mapName))
+            {
+                Debug.Log($"Room: {roomInfo.Name}, Map: {mapName}");
+            }
+        }
     }
 
-    public void JoinRandomRoom()
+    public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        PhotonNetwork.JoinRandomRoom();
+        if (otherPlayer.IsMasterClient)
+            if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount > 1)
+            {
+                Dictionary<int, Player> roomPlayers = PhotonNetwork.CurrentRoom.Players;
+                foreach (var player in roomPlayers.Values)
+                {
+                    if (player.NickName == otherPlayer.NickName)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        PhotonNetwork.SetMasterClient(player);
+                        break;
+                    }
+                }
+            }
     }
 
-    public void JoinSpecificRoom(string roomName)
+    private void ShowRoomFullMessage()
     {
-        PhotonNetwork.JoinRoom(roomName);
+        Debug.Log("Комната заполнена. Пожалуйста, выберите другую комнату.");
     }
 
-    private IEnumerator LevelWaitingLoading()
+
+    private IEnumerator DelayAfterLevelLoading()
     {
-        yield return new WaitForSeconds(2);
-        Debug.Log("Delay finished");
-
-        GameObject _player = PhotonNetwork.Instantiate("Player", new Vector3(0f, 25f, 0f), Quaternion.identity);
-
-        Debug.Log("Player object instantiated");
+        yield return new WaitForSeconds(3);
+        Transform spawnPoint = RespawnManager.instance.spawnPoints[Random.Range(0, RespawnManager.instance.spawnPoints.Length - 1)];
+        PhotonNetwork.Instantiate("Player", spawnPoint.position, Quaternion.identity);
     }
 }

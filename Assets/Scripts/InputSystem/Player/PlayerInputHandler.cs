@@ -1,12 +1,11 @@
 using Photon.Pun;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerInputHandler : MonoBehaviourPun
 {
-    //Singleton pattern for Input System
-
-    [SerializeField] private InputActionAsset inputAsset;
+    private InputActionAsset inputAsset;
 
     private string actionMapName = "PlayerActionMap";
 
@@ -15,14 +14,21 @@ public class PlayerInputHandler : MonoBehaviourPun
     private string sprintName = "Sprint";
     private string jumpName = "Jump";
     private string fireName = "Fire";
+    private string reloadName = "Reload";
+    private string escMenuName = "Menu";
 
     private InputAction moveAction;
     private InputAction lookAction;
     private InputAction sprintAction;
     private InputAction jumpAction;
     private InputAction fireAction;
+    private InputAction reloadAction;
+    private InputAction escAction;
 
-    public Vector2 moveInput {  get; private set; }
+    //For ESC button
+    public Action onEscPressed;
+
+    public Vector2 moveInput { get; private set; }
 
     public Vector2 lookInput { get; private set; }
     public bool sprintInput { get; private set; }
@@ -31,20 +37,26 @@ public class PlayerInputHandler : MonoBehaviourPun
 
     public bool fireInput { get; private set; }
 
-    public static PlayerInputHandler Instance;
+    public bool reloadInput { get; private set; }
+
+    public bool escInput { get; private set; }
 
     private void Awake()
     {
-        if (photonView.IsMine)
+        if (!photonView.IsMine)
         {
-            Instance = this;
+            return;
         }
+
+        inputAsset = Resources.Load<InputActionAsset>("Input/PlayerInputActions");
 
         moveAction = inputAsset.FindActionMap(actionMapName).FindAction(moveName);
         sprintAction = inputAsset.FindActionMap(actionMapName).FindAction(sprintName);
         lookAction = inputAsset.FindActionMap(actionMapName).FindAction(lookName);
         jumpAction = inputAsset.FindActionMap(actionMapName).FindAction(jumpName);
         fireAction = inputAsset.FindActionMap(actionMapName).FindAction(fireName);
+        reloadAction = inputAsset.FindActionMap(actionMapName).FindAction(reloadName);
+        escAction = inputAsset.FindActionMap(actionMapName).FindAction(escMenuName);
 
         RegisterInputActions();
     }
@@ -65,23 +77,43 @@ public class PlayerInputHandler : MonoBehaviourPun
 
         fireAction.performed += context => fireInput = true;
         fireAction.canceled += context => fireInput = false;
+
+        reloadAction.performed += context => reloadInput = true;
+        reloadAction.canceled += context => reloadInput = false;
+
+        escAction.performed += context => onEscPressed?.Invoke();
     }
 
     private void OnEnable()
     {
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
         moveAction.Enable();
         sprintAction.Enable();
         lookAction.Enable();
         jumpAction.Enable();
         fireAction.Enable();
+        reloadAction.Enable();
+        escAction.Enable();
+
     }
 
     private void OnDisable()
     {
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
         moveAction.Disable();
         sprintAction.Disable();
         lookAction.Disable();
         jumpAction.Disable();
         fireAction.Disable();
+        reloadAction.Disable();
+        escAction.Disable();
     }
 }

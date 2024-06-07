@@ -11,8 +11,9 @@ public class RoomList : MonoBehaviourPunCallbacks
 {
     private RectTransform findRoomPanel;
     private Button closePanBtn;
+    private Button refreshRoomsBtn;
 
-    //Select row
+    // Select row
     private GraphicRaycaster raycaster;
     private PointerEventData clickData;
     private List<RaycastResult> clickResults;
@@ -27,7 +28,10 @@ public class RoomList : MonoBehaviourPunCallbacks
     {
         findRoomPanel = GameObject.Find("FindRoomsPanel").GetComponent<RectTransform>();
         closePanBtn = GameObject.Find("ClosePan").GetComponent<Button>();
+        refreshRoomsBtn = GameObject.Find("RefreshRoomList").GetComponent<Button>();
+
         closePanBtn.onClick.AddListener(ClosePan);
+        refreshRoomsBtn.onClick.AddListener(RefreshRoomList);
 
         raycaster = GetComponent<GraphicRaycaster>();
         clickData = new PointerEventData(EventSystem.current);
@@ -38,14 +42,14 @@ public class RoomList : MonoBehaviourPunCallbacks
     {
         if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
-            GetUIElemetsClicked();
+            GetUIElementsClicked();
         }
     }
 
-    private void GetUIElemetsClicked()
+    private void GetUIElementsClicked()
     {
         clickData.position = Mouse.current.position.ReadValue();
-        
+
         clickResults.Clear();
 
         raycaster.Raycast(clickData, clickResults);
@@ -55,7 +59,7 @@ public class RoomList : MonoBehaviourPunCallbacks
             clickedElement = result.gameObject;
             if (clickedElement.name.StartsWith("RoomItem"))
             {
-                if(previousClickedElement != null && previousClickedElement != clickedElement)
+                if (previousClickedElement != null && previousClickedElement != clickedElement)
                 {
                     previousClickedElement.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.4f);
                     previousClickedElement.GetComponent<RoomItem>().SetConnectButtonNonActive();
@@ -71,18 +75,6 @@ public class RoomList : MonoBehaviourPunCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        if (roomListContainer == null)
-        {
-            Debug.LogError("roomListContainer is not assigned.");
-            return;
-        }
-
-        if (roomItemPrefab == null)
-        {
-            Debug.LogError("roomItemPrefab is not assigned.");
-            return;
-        }
-
         // Clear previous room items
         foreach (Transform child in roomListContainer)
         {
@@ -104,5 +96,19 @@ public class RoomList : MonoBehaviourPunCallbacks
     private void ClosePan()
     {
         findRoomPanel.localScale = Vector3.zero;
+    }
+
+    private void RefreshRoomList()
+    {
+        if (PhotonNetwork.InLobby)
+        {
+            // This will trigger the OnRoomListUpdate callback
+            PhotonNetwork.LeaveLobby();
+            PhotonNetwork.JoinLobby();
+        }
+        else
+        {
+            PhotonNetwork.JoinLobby();
+        }
     }
 }

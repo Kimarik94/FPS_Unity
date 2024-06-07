@@ -1,30 +1,17 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    private GameManager Instance;
     private List<GameObject> bulletSpots = new List<GameObject>();
-
-    private bool needRefreshBulletsList = true;
 
     private float lastCheckBulletsTime = 0f;
     private float checkBulletsInterval = 60f;
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        DontDestroyOnLoad(gameObject);
     }
 
     private void FixedUpdate()

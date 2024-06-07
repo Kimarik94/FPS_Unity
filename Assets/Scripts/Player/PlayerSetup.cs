@@ -22,6 +22,7 @@ public class PlayerSetup : MonoBehaviourPun
     public void IsLocalPlayer()
     {
         CreatePlayerCamera();
+        EnablePlayerControls();
     }
 
     private void CreatePlayerCamera()
@@ -58,5 +59,13 @@ public class PlayerSetup : MonoBehaviourPun
         Canvas canvas = temp.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceCamera;
         canvas.worldCamera = camera;
+    }
+
+    private void EnablePlayerControls()
+    {
+        // ¬ключить компоненты, отвечающие за управление игроком
+        GetComponent<PlayerMovements>().enabled = true;
+        GetComponentInChildren<CameraMovement>().enabled = true;
+        GetComponentInChildren<GunLogic>().enabled = true;
     }
 }

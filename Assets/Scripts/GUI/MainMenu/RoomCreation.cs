@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 
 public class RoomCreation : MonoBehaviour
 {
+    private NetworkManager networkManager;
+
     private UnityEngine.UI.Button backButton;
     private UnityEngine.UI.Button createSpecificRoomButton;
 
@@ -17,10 +19,13 @@ public class RoomCreation : MonoBehaviour
 
     private void Start()
     {
+        networkManager = GameObject.Find("GameManager").GetComponent<NetworkManager>();
+
         backButton = GameObject.Find("BackButton").GetComponent<UnityEngine.UI.Button>();
         backButton.onClick.AddListener(Back);
 
-        createSpecificRoomButton = GameObject.Find("CreateRoomButton").GetComponent<UnityEngine.UI.Button>();
+        createSpecificRoomButton = 
+            GameObject.Find("CreateRoomButton").GetComponent<UnityEngine.UI.Button>();
         createSpecificRoomButton.onClick.AddListener(TakeInfoFormAndCreateRoom);
 
         playerNickname = GameObject.Find("InputFieldNickName");
@@ -38,11 +43,17 @@ public class RoomCreation : MonoBehaviour
     {
         string nickname = playerNickname.GetComponent<TMP_InputField>().text;
         string roomname = roomName.GetComponent<TMP_InputField>().text;
-        string players = playersQty.GetComponent<TMP_Dropdown>().itemText.text;
+        string players = playersQty.GetComponent<TMP_Dropdown>().options[playersQty.GetComponent<TMP_Dropdown>().value].text;
+        string level = mapType.GetComponent<TMP_Dropdown>().options[mapType.GetComponent<TMP_Dropdown>().value].text;
 
-        RoomOptions roomOptions = new RoomOptions();
-        int.TryParse(players, out roomOptions.MaxPlayers);
-        
-        PhotonNetwork.CreateRoom(roomname, roomOptions);
+        if (int.TryParse(players, out int intPlayers))
+        {
+            Debug.Log($"Creating room with {intPlayers} players");
+            networkManager.CreateRoom(roomname, intPlayers, level, nickname);
+        }
+        else
+        {
+            Debug.LogError("Invalid number of players");
+        }
     }
 }

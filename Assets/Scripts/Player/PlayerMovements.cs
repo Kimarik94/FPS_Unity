@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerMovements : MonoBehaviourPunCallbacks
 {
     private CharacterController playerController;
+    private PlayerInputHandler inputHandler;
 
     //Player Movement Values
     private float playerSpeed;
@@ -25,6 +26,7 @@ public class PlayerMovements : MonoBehaviourPunCallbacks
     {
         if (photonView.IsMine)
         {
+            inputHandler = GetComponent<PlayerInputHandler>();
             playerController = GetComponent<CharacterController>();
             ground = LayerMask.GetMask("Ground");
         }
@@ -41,15 +43,15 @@ public class PlayerMovements : MonoBehaviourPunCallbacks
 
     private void Move()
     {
-        float targetSpeed = PlayerInputHandler.Instance.sprintInput ? playerSprintSpeed : playerMoveSpeed;
+        float targetSpeed = inputHandler.sprintInput ? playerSprintSpeed : playerMoveSpeed;
 
-        if (PlayerInputHandler.Instance.moveInput == Vector2.zero) targetSpeed = 0.0f;
+        if (inputHandler.moveInput == Vector2.zero) targetSpeed = 0.0f;
 
         float currentSpeed = new Vector3(playerController.velocity.x, 0, playerController.velocity.z).magnitude;
 
         float smoothSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * speedSmoothRate);
 
-        Vector3 inputDirection = new Vector3(PlayerInputHandler.Instance.moveInput.x, 0f, PlayerInputHandler.Instance.moveInput.y).normalized;
+        Vector3 inputDirection = new Vector3(inputHandler.moveInput.x, 0f, inputHandler.moveInput.y).normalized;
 
         moveDirection = (transform.right * inputDirection.x + transform.forward * inputDirection.z).normalized;
 
@@ -65,7 +67,7 @@ public class PlayerMovements : MonoBehaviourPunCallbacks
             velocity.y = -2f;
         }
 
-        if (isGrounded && PlayerInputHandler.Instance.jumpInput)
+        if (isGrounded && inputHandler.jumpInput)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * GlobalGravity.Instance.gravity);
         }

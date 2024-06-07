@@ -125,10 +125,10 @@ GameObject:
   - component: {fileID: 4444197697070097738}
   - component: {fileID: 82528904832019229}
   - component: {fileID: 1464509883398105043}
-  - component: {fileID: 5140169688088214133}
   - component: {fileID: 1488076369810501184}
   - component: {fileID: 5557528516513039621}
   - component: {fileID: 6728984387320645300}
+  - component: {fileID: 6628603559624949936}
   m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
@@ -202,22 +202,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!111 &5140169688088214133
-Animation:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8123467198400880679}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: 7400000, guid: 8e22530d749ad7540b003d79f192b56f, type: 2}
-  m_Animations:
-  - {fileID: 7400000, guid: 8e22530d749ad7540b003d79f192b56f, type: 2}
-  m_WrapMode: 0
-  m_PlayAutomatically: 0
-  m_AnimatePhysics: 0
-  m_CullingType: 0
 --- !u!82 &1488076369810501184
 AudioSource:
   m_ObjectHideFlags: 0
@@ -399,16 +383,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 0}
-  gunSound: {fileID: 8300000, guid: b7fc4451f42e7254686ca922221dfad6, type: 3}
   shootDelay: 0.15
+  recoilBack: 0.1
+  recoilUp: 0.1
+  recoilLength: 0.01
+  recoverLength: 0.02
+  swayClamp: 0.06
+  smoothing: 3
   hitMasks:
     serializedVersion: 2
     m_Bits: 72
   gunDamage: 10
   bulletHolePrefab: {fileID: 6039615558674541146, guid: e97acbac06cd52f458468b75a429182f, type: 3}
-  hitLayers:
-    serializedVersion: 2
-    m_Bits: 8
+  ammoClipDry: 0
+  ammoTotalDry: 0
+  reloading: 0
+  spreadHorizontal: 0.025
+  spreadVertical: 0.0125
 --- !u!114 &6728984387320645300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -431,3 +422,19 @@ MonoBehaviour:
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!111 &6628603559624949936
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8123467198400880679}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 52dc59e6fb0631f4b9b58e92e75bdefd, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 52dc59e6fb0631f4b9b58e92e75bdefd, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
